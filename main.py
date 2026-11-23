@@ -3,43 +3,43 @@ from YuNetModel import YuNetModel
 
 def main():
     # Inicializa a câmera 0 (padrão do Windows) e carrega o modelo
-    cap = cv2.VideoCapture(0)
-    model = YuNetModel(threshold=0.6)
+    camera = cv2.VideoCapture(0)
+    modelo = YuNetModel(threshold=0.6)
 
-    if not cap.isOpened():
+    if not camera.isOpened():
         print("Erro ao acessar a webcam.")
         return
 
     while True:
-        ret, frame = cap.read()
-        if not ret:
+        sucesso, img = camera.read()
+        if not sucesso:
             break
 
         # Faz a detecção de rostos
-        faces = model.detect(frame)
+        rostos = modelo.detect(img)
 
         # Desenha as marcações para cada rosto detectado
-        for face in faces:
+        for rosto in rostos:
             # Extrai a caixa delimitadora (x, y, largura, altura)
-            box = list(map(int, face[:4]))
-            cv2.rectangle(frame, (box[0], box[1]), (box[0] + box[2], box[1] + box[3]), (0, 255, 0), 2)
+            caixa = list(map(int, rosto[:4]))
+            cv2.rectangle(img, (caixa[0], caixa[1]), (caixa[0] + caixa[2], caixa[1] + caixa[3]), (0, 255, 0), 2)
 
-            # Extrai os 5 landmarks (olhos, nariz e cantos da boca)
-            landmarks = list(map(int, face[4:14]))
-            for i in range(5):
-                cv2.circle(frame, (landmarks[i*2], landmarks[i*2+1]), 2, (0, 0, 255), -1)
+            # Extrai os 3 landmarks (os pontos de referência) que estamos interessados que são os olhos e o nariz para saber se a pessoa está olhando para frente
+            landmarks = list(map(int, rosto[4:14]))
+            for i in range(3):
+                cv2.circle(img, (landmarks[i*2], landmarks[i*2+1]), 2, (0, 0, 255), -1)
 
-        # Exibe a contagem de pessoas detectadas (Meta 1)
-        cv2.putText(frame, f"Rostos detectados: {len(faces)}", (20, 40), 
+        # Exibe a contagem de pessoas detectadas
+        cv2.putText(img, f"Rostos detectados: {len(rostos)}", (20, 40), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
 
-        cv2.imshow("PIN Pad Anti-Espiao", frame)
+        cv2.imshow("PIN Pad Anti-Espiao", img)
 
-        # Pressione 'q' para encerrar
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        # Pressione 'esc' para encerrar
+        tecla = cv2.waitKey(1)
+        if tecla == 27:
             break
-
-    cap.release()
+    camera.release()
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
